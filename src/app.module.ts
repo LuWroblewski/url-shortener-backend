@@ -1,13 +1,15 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { SentryGlobalFilter, SentryModule } from '@sentry/nestjs/setup';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthGuard } from './common/auth/auth.guard';
 import type { Env } from './common/interfaces/env.interface';
 import { AuthModule } from './modules/auth/auth.module';
+import { UrlsModule } from './modules/urls/urls.module';
 import { UsersModule } from './modules/users/users.module';
 
 @Module({
@@ -38,6 +40,8 @@ import { UsersModule } from './modules/users/users.module';
     }),
     UsersModule,
     AuthModule,
+    UrlsModule,
+    SentryModule.forRoot(),
   ],
   controllers: [AppController],
   providers: [
@@ -45,6 +49,10 @@ import { UsersModule } from './modules/users/users.module';
     {
       provide: APP_GUARD,
       useClass: AuthGuard,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: SentryGlobalFilter,
     },
   ],
 })

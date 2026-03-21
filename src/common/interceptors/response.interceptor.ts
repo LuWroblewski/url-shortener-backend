@@ -6,6 +6,7 @@ import {
   Injectable,
   type NestInterceptor,
 } from '@nestjs/common';
+import * as Sentry from '@sentry/nestjs';
 import { format } from 'date-fns';
 import { type Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
@@ -37,6 +38,9 @@ export class ResponseInterceptor<T> implements NestInterceptor<T, ApiResponse<T>
 
         const message = this.resolveMessage(err, status);
 
+        if (status >= 500) {
+          Sentry.captureException(err);
+        }
         const errorResponse: ApiResponse<null> = {
           statusCode: status,
           message,
