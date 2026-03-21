@@ -20,13 +20,6 @@ export class AuthController {
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Ver perfil do usuário logado' })
-  @Get('profile')
-  getProfile(@Request() req: AuthRequest): JwtPayload {
-    return req.user;
-  }
-
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Verificar se o token é válido' })
   @Get('verify')
   verify() {
