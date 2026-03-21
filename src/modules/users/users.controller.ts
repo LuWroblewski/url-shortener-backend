@@ -27,8 +27,9 @@ export class UsersController {
 
   @ApiOperation({ summary: 'Listar usuário por username' })
   @Get(':username')
-  findOneByUsername(@Param('username') username: string) {
-    return this.usersService.findOneUsername(username);
+  async findOneByUsername(@Param('username') username: string) {
+    const { id, password, ...result } = await this.usersService.findOneUsername(username);
+    return result;
   }
 
   @ApiOperation({ summary: 'Atualizar usuário por username' })

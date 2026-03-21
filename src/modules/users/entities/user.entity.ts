@@ -1,9 +1,11 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-
+import { BeforeInsert, Column, Entity, Generated, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 @Entity()
 export class Users {
   @PrimaryGeneratedColumn()
   id: number;
+  @Column()
+  @Generated('uuid')
+  public_id: string;
   @Column({ length: 250, nullable: false })
   firstName: string;
   @Column({ length: 250, nullable: false })

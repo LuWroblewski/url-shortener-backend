@@ -29,13 +29,14 @@ export class UsersService {
       createdBy: { id: idUser },
     });
 
-    await this.usersRepository.save(user);
-    const { password, ...result } = user;
+    const savedUser = await this.usersRepository.save(user);
+    const { id, password, createdBy, ...result } = savedUser;
     return result;
   }
 
-  findAll() {
-    return this.usersRepository.find();
+  async findAll() {
+    const users = await this.usersRepository.find();
+    return users.map(({ id, password, ...result }) => result);
   }
 
   async findOneUsername(userName: string) {
@@ -69,8 +70,8 @@ export class UsersService {
       updatedAt: new Date(),
     });
 
-    await this.usersRepository.save(updated);
-    const { password, ...result } = updated;
+    const savedUser = await this.usersRepository.save(updated);
+    const { id, password, createdBy, updatedBy, ...result } = savedUser;
     return result;
   }
 
