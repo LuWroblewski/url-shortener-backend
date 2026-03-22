@@ -122,6 +122,45 @@ npm run start:dev
 
 ---
 
+## 👤 Criando o Primeiro Usuário
+
+Não há rota pública de cadastro — o primeiro usuário precisa ser inserido diretamente no banco. A senha deve ser gerada com bcrypt antes do insert.
+
+**1. Gere o hash da senha:**
+
+```bash
+npx ts-node src/gen-hash.ts
+# Saída: $2b$10$...  ← copie esse valor
+```
+
+> O script `gen-hash.ts` usa bcrypt com salt 10 e gera o hash da senha `123` por padrão. Edite o arquivo para usar outra senha se necessário.
+
+**2. Insira o usuário no banco:**
+
+```sql
+INSERT INTO users ("firstName", "lastName", "userName", email, password, status, "createdAt")
+VALUES (
+  'Admin',
+  'User',
+  'admin',
+  'admin@email.com',
+  '$2b$10$HASH_GERADO_NO_PASSO_ANTERIOR',
+  1,
+  NOW()
+);
+```
+
+**3. Faça login com as credenciais:**
+
+```json
+{
+  "userName": "admin",
+  "password": "123"
+}
+```
+
+---
+
 ## 🗄️ Migrations
 
 ```bash
