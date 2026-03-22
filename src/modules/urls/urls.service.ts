@@ -26,8 +26,7 @@ export class UrlsService {
       createdBy: { id: idUser },
     });
 
-    if (originalUrlExists)
-      throw new ConflictException('URL original já está em uso por este usuário, não criada um novo registro');
+    if (originalUrlExists) throw new ConflictException('URL já cadastrada anteriormente');
 
     const appUrl = this.configService.get<string>('API_URL');
     let shortCode: string = '';
@@ -97,7 +96,7 @@ export class UrlsService {
         createdBy: { id: idUser },
       });
 
-      if (originalUrlExists) throw new ConflictException('URL original já está em uso por este usuário');
+      if (originalUrlExists) throw new ConflictException('URL já cadastrada anteriormente');
     }
 
     await this.urlsRepository.save({
