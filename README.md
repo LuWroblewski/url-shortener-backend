@@ -242,6 +242,31 @@ Para ativar o monitoramento, basta preencher o `SENTRY_DSN` no `.env` com o DSN 
 
 ---
 
+## 🏗️ Decisões Técnicas
+
+**Cache de redirecionamento com Redis** — o endpoint de redirecionamento (`/urls/shortCode/:code`) tende a ser o mais acessado da aplicação. Para evitar uma query ao banco a cada acesso, o resultado é cacheado no Redis por 1 hora e invalidado automaticamente ao editar ou deletar a URL.
+
+**Soft delete** — URLs não são removidas fisicamente do banco. O campo `status` é alterado para `2` (inativa) e o campo `disabledAt` é preenchido. Isso preserva o histórico e permite reativação futura.
+
+**Short code com colisão garantida** — o `nanoid(6)` gera o código curto em loop até encontrar um valor único no banco, evitando conflitos sem depender de constraints de banco para controlar o fluxo.
+
+**Guard global com `@Public()`** — em vez de aplicar autenticação rota a rota, o `AuthGuard` é registrado globalmente e as rotas públicas são marcadas com o decorator `@Public()`. Além de verificar o token JWT, o guard consulta o banco para confirmar que o usuário ainda existe e está ativo.
+
+**ResponseInterceptor global** — todas as respostas (sucesso e erro) seguem o mesmo envelope `{ statusCode, message, request_date, path, data }`, facilitando o consumo pelo frontend. Erros 5xx são capturados e enviados ao Sentry automaticamente pelo próprio interceptor.
+
+**Rate limiting com storage no Redis** — o throttle é configurado globalmente (100 req/min por IP) com estado armazenado no Redis, o que garante que o limite funcione corretamente em ambientes com múltiplas instâncias da API.
+
+---
+
+## 🔮 Melhorias com Mais Tempo
+
+- **Refresh token** — atualmente o JWT expira em 12h sem possibilidade de renovação silenciosa. Implementaria um fluxo de refresh token com rotação e armazenamento seguro.
+- **Rota de cadastro pública** — hoje o primeiro usuário precisa ser inserido manualmente no banco. Uma rota de registro publica resolveria isso porém necessitando de uma validação por email ou telefone.
+- **Paginação nas listagens** — o endpoint `GET /urls` retorna todas as URLs do usuário de uma vez. Com volume maior, seria necessário paginação.
+- **Testes de integração e e2e** — os arquivos `.spec.ts` foram gerados pelo CLI mas não implementados. Cobriria os principais fluxos com testes de integração usando banco em memória ou contêiner dedicado.
+
+---
+
 ## 🌐 CORS
 
 Por padrão, o CORS está configurado para aceitar requisições de `http://localhost:4200` (Angular dev server). Altere a `origin` em `src/main.ts` conforme necessário.
