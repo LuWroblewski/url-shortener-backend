@@ -19,7 +19,7 @@ export class Users {
   @Column({
     default: 1,
     nullable: true,
-    comment: '1=Ativo, 2=Inativo, 3=Suspenso',
+    comment: '1=Ativo, 2=Inativo',
   })
   status: number;
   @ManyToOne(() => Users, { nullable: true })
