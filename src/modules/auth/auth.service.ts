@@ -14,7 +14,7 @@ export class AuthService {
   async signIn(createAuthDto: CreateAuthDto): Promise<{ access_token: string }> {
     const user = await this.usersService.findOneUsername(createAuthDto.userName);
 
-    if (!user || !(await bcrypt.compare(createAuthDto.password, user.password))) {
+    if (!user || user.status === 2 || !(await bcrypt.compare(createAuthDto.password, user.password))) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
