@@ -34,9 +34,13 @@ export class UsersService {
     return result;
   }
 
-  async findAll() {
-    const users = await this.usersRepository.find();
-    return users.map(({ id, password, ...result }) => result);
+  async findAll(limit: number, page: number) {
+    const [users, total] = await this.usersRepository.findAndCount({
+      take: limit,
+      skip: (page - 1) * limit,
+    });
+
+    return [users.map(({ id, password, ...result }) => result), total] as [Omit<Users, 'id' | 'password'>[], number];
   }
 
   async findOneUsername(userName: string) {

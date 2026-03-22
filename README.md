@@ -256,13 +256,14 @@ Para ativar o monitoramento, basta preencher o `SENTRY_DSN` no `.env` com o DSN 
 
 **Rate limiting com storage no Redis** — o throttle é configurado globalmente (100 req/min por IP) com estado armazenado no Redis, o que garante que o limite funcione corretamente em ambientes com múltiplas instâncias da API.
 
+**Paginação nas listagens** — os endpoints `GET /users` e `GET /urls` utilizam paginação via query params `page` e `limit`. A lógica de montar o envelope paginado (`totalPages`, `page`, `limit`) fica centralizada no `ResponseInterceptor`, que detecta automaticamente quando o service retorna
+
 ---
 
 ## 🔮 Melhorias com Mais Tempo
 
 - **Refresh token** — atualmente o JWT expira em 12h sem possibilidade de renovação silenciosa. Implementaria um fluxo de refresh token com rotação e armazenamento seguro.
 - **Rota de cadastro pública** — hoje o primeiro usuário precisa ser inserido manualmente no banco. Uma rota de registro publica resolveria isso porém necessitando de uma validação por email ou telefone.
-- **Paginação nas listagens** — o endpoint `GET /urls` retorna todas as URLs do usuário de uma vez. Com volume maior, seria necessário paginação.
 - **Testes de integração e e2e** — os arquivos `.spec.ts` foram gerados pelo CLI mas não implementados. Cobriria os principais fluxos com testes de integração usando banco em memória ou contêiner dedicado.
 
 ---

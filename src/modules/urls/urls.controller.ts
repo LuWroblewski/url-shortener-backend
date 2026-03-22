@@ -1,6 +1,7 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Request, Res } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Request, Query, Res } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Public } from 'src/common/auth/public.decorator';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { JwtPayload } from 'src/common/interfaces/jwt.interface';
 import { CreateUrlDto } from './dto/create-url.dto';
 import { UpdateUrlDto } from './dto/update-url.dto';
@@ -22,8 +23,8 @@ export class UrlsController {
 
   @ApiOperation({ summary: 'Listar todas as URLs do usuário' })
   @Get()
-  findAll(@Request() req: AuthRequest) {
-    return this.urlsService.findAll(req.user.sub);
+  findAll(@Request() req: AuthRequest, @Query() { limit = 10, page = 1 }: PaginationDto) {
+    return this.urlsService.findAll(req.user.sub, limit, page);
   }
 
   @ApiOperation({ summary: 'Buscar URL por url, filtrado pelo usuário' })

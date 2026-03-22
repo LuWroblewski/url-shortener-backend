@@ -1,5 +1,6 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Request } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Request } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 import type { JwtPayload } from 'src/common/interfaces/jwt.interface';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -21,8 +22,8 @@ export class UsersController {
 
   @ApiOperation({ summary: 'Listar todos os usuários' })
   @Get()
-  findAll() {
-    return this.usersService.findAll();
+  findAll(@Query() { limit = 10, page = 1 }: PaginationDto) {
+    return this.usersService.findAll(limit, page);
   }
 
   @ApiOperation({ summary: 'Listar usuário por username' })

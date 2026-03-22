@@ -68,14 +68,13 @@ export class UrlsService {
     await this.urlsRepository.increment({ id }, 'clicks', 1);
   }
 
-  async findAll(idUser: number) {
-    return this.urlsRepository.find({
-      where: {
-        createdBy: { id: idUser },
-      },
+  async findAll(idUser: number, limit: number, page: number) {
+    return this.urlsRepository.findAndCount({
+      where: { createdBy: { id: idUser } },
+      take: limit,
+      skip: (page - 1) * limit,
     });
   }
-
   async findOne(public_id: string, idUser: number) {
     const url = await this.urlsRepository.findOneBy({
       public_id,
