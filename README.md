@@ -258,13 +258,15 @@ Para ativar o monitoramento, basta preencher o `SENTRY_DSN` no `.env` com o DSN 
 
 **Paginação nas listagens** — os endpoints `GET /users` e `GET /urls` utilizam paginação via query params `page` e `limit`. A lógica de montar o envelope paginado (`totalPages`, `page`, `limit`) fica centralizada no `ResponseInterceptor`, que detecta automaticamente quando o service retorna
 
+**Testes unitários** — todos os controllers e services possuem testes unitários com mocks, cobrindo os cenários de sucesso e erro de cada endpoint. O `jest.mock` é usado para isolar dependências externas como bcrypt e nanoid, garantindo testes rápidos e sem dependência de infraestrutura.
+
 ---
 
 ## 🔮 Melhorias com Mais Tempo
 
 - **Refresh token** — atualmente o JWT expira em 12h sem possibilidade de renovação silenciosa. Implementaria um fluxo de refresh token com rotação e armazenamento seguro.
 - **Rota de cadastro pública** — hoje o primeiro usuário precisa ser inserido manualmente no banco. Uma rota de registro publica resolveria isso porém necessitando de uma validação por email ou telefone.
-- **Testes de integração e e2e** — os arquivos `.spec.ts` foram gerados pelo CLI mas não implementados. Cobriria os principais fluxos com testes de integração usando banco em memória ou contêiner dedicado.
+- **Testes e2e** — configuraria o `app.e2e-spec.ts` com banco e Redis dedicados em container para cobrir os principais fluxos de ponta a ponta, validando o comportamento real da aplicação completa.
 
 ---
 

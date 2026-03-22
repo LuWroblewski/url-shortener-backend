@@ -14,9 +14,15 @@ describe('AppController', () => {
     appController = app.get<AppController>(AppController);
   });
 
-  describe('root', () => {
-    it('should return "Hello World!"', () => {
+  describe('getHello', () => {
+    it('deve retornar "Hello World!"', () => {
       expect(appController.getHello()).toBe('Hello World!');
+    });
+  });
+
+  describe('testSentry', () => {
+    it('deve lançar um erro', () => {
+      expect(() => appController.testSentry()).toThrow('Teste Sentry funcionando!');
     });
   });
 });
