@@ -267,6 +267,7 @@ Para ativar o monitoramento, basta preencher o `SENTRY_DSN` no `.env` com o DSN 
 - **Refresh token** — atualmente o JWT expira em 12h sem possibilidade de renovação silenciosa. Implementaria um fluxo de refresh token com rotação e armazenamento seguro.
 - **Rota de cadastro pública** — hoje o primeiro usuário precisa ser inserido manualmente no banco. Uma rota de registro publica resolveria isso porém necessitando de uma validação por email ou telefone.
 - **Testes e2e** — configuraria o `app.e2e-spec.ts` com banco e Redis dedicados em container para cobrir os principais fluxos de ponta a ponta, validando o comportamento real da aplicação completa.
+- **Versionamento semântico** — o projeto já possui version no package.json, mas sem um processo formal. Adotaria o npm version integrado ao CI/CD para que cada release gere automaticamente uma tag Git, facilitando o rastreamento de deploys e a geração de changelogs com ferramentas como conventional-changelog.
 
 ---
 
