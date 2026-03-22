@@ -2,10 +2,14 @@ import { ConflictException, Injectable, NotFoundException } from '@nestjs/common
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { nanoid } from 'nanoid';
+import { CacheService } from 'src/common/cache/cache.service';
 import { Repository } from 'typeorm';
 import { CreateUrlDto } from './dto/create-url.dto';
 import { UpdateUrlDto } from './dto/update-url.dto';
 import { Url } from './entities/url.entity';
+
+const CACHE_TTL = 60 * 60; // 1 hora em segundos
+const cacheKey = (shortCode: string) => `url:${shortCode}`;
 
 @Injectable()
 export class UrlsService {
@@ -13,6 +17,7 @@ export class UrlsService {
     @InjectRepository(Url)
     private readonly urlsRepository: Repository<Url>,
     private readonly configService: ConfigService,
+    private readonly cacheService: CacheService,
   ) {}
 
   async create(CreateUrlDto: CreateUrlDto, idUser: number) {
@@ -49,8 +54,14 @@ export class UrlsService {
   }
 
   async findByShortCode(shortCode: string) {
+    const cached = await this.cacheService.get<Url>(cacheKey(shortCode));
+    if (cached) return cached;
+
     const url = await this.urlsRepository.findOneBy({ shortCode });
     if (!url || url.status === 2) throw new NotFoundException('URL não encontrada');
+
+    await this.cacheService.set(cacheKey(shortCode), url, CACHE_TTL);
+
     return url;
   }
 
@@ -95,6 +106,8 @@ export class UrlsService {
       updatedAt: new Date(),
     });
 
+    await this.cacheService.del(cacheKey(urlEntity.shortCode));
+
     return this.findOne(public_id, idUser);
   }
 
@@ -109,5 +122,7 @@ export class UrlsService {
       disabledAt: new Date(),
       deletedBy: { id: idUser },
     });
+
+    await this.cacheService.del(cacheKey(urlEntity.shortCode));
   }
 }

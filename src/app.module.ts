@@ -1,7 +1,9 @@
+import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SentryGlobalFilter, SentryModule } from '@sentry/nestjs/setup';
 import { AppController } from './app.controller';
@@ -11,10 +13,17 @@ import type { Env } from './common/interfaces/env.interface';
 import { AuthModule } from './modules/auth/auth.module';
 import { UrlsModule } from './modules/urls/urls.module';
 import { UsersModule } from './modules/users/users.module';
-
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService<Env, true>) => ({
+        throttlers: [{ limit: 100, ttl: 60000 }],
+        storage: new ThrottlerStorageRedisService(configService.get('REDIS_URL', { infer: true })),
+      }),
+      inject: [ConfigService],
+    }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService<Env, true>) => ({
@@ -46,6 +55,10 @@ import { UsersModule } from './modules/users/users.module';
   controllers: [AppController],
   providers: [
     AppService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
     {
       provide: APP_GUARD,
       useClass: AuthGuard,
