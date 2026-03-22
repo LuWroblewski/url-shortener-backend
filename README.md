@@ -1,98 +1,208 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# 🔗 URL Shortener — Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+API REST para encurtamento de URLs construída com NestJS, PostgreSQL, Redis e monitoramento via Sentry.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## 🚀 Tecnologias
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- **[NestJS](https://nestjs.com/)** — Framework Node.js para construção da API
+- **[TypeORM](https://typeorm.io/)** — ORM para integração com PostgreSQL
+- **[PostgreSQL](https://www.postgresql.org/)** — Banco de dados relacional
+- **[Redis](https://redis.io/)** — Cache de URLs encurtadas e throttling distribuído
+- **[JWT](https://jwt.io/)** — Autenticação via JSON Web Token (Bearer)
+- **[Swagger](https://swagger.io/)** — Documentação interativa da API
+- **[Sentry](https://sentry.io/)** — Monitoramento de erros e performance
+- **[Biome](https://biomejs.dev/)** — Linter e formatter
+- **[nanoid](https://github.com/ai/nanoid)** — Geração de short codes únicos
+- **[bcrypt](https://github.com/kelektiv/node.bcrypt.js)** — Hash de senhas
+- **Docker / Docker Compose** — Orquestração dos serviços
 
-## Project setup
+---
 
-```bash
-$ npm install
+## 📁 Estrutura do Projeto
+
+```
+src/
+├── common/
+│   ├── auth/           # Guard JWT e decorator @Public
+│   ├── cache/          # Serviço de cache (Redis)
+│   ├── constants/      # Mensagens HTTP
+│   ├── helpers/        # Helpers utilitários
+│   ├── interceptors/   # ResponseInterceptor (padronização de respostas)
+│   └── interfaces/     # Interfaces de tipagem (Env, JWT, Response)
+├── modules/
+│   ├── auth/           # Login e geração de token JWT
+│   ├── users/          # CRUD de usuários
+│   └── urls/           # CRUD de URLs + redirecionamento
+├── app.module.ts
+├── main.ts
+└── instrument.ts       # Inicialização do Sentry
 ```
 
-## Compile and run the project
+---
+
+## ⚙️ Configuração do `.env`
+
+Antes de executar o `docker compose build`, crie o arquivo `.env` na raiz do projeto com base no `.env.example`:
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+cp .env.example .env
 ```
 
-## Run tests
+Em seguida, preencha as variáveis:
+
+```env
+# Ambiente da aplicação
+NODE_ENV=development
+
+# Banco de dados (deve coincidir com o docker-compose.yml)
+DB_HOST=localhost        # Use "postgres" ao rodar via Docker Compose
+DB_PORT=5432
+DB_USERNAME=postgres
+DB_PASSWORD=URI-BACKEND  # Mesmo valor de POSTGRES_PASSWORD no docker-compose
+DB_DATABASE=url_shortener
+
+# JWT — troque por uma string longa e aleatória
+JWT_SECRET=sua_chave_super_secreta_aqui
+
+# Sentry — obtenha o DSN no painel do seu projeto em sentry.io
+SENTRY_DSN=https://xxxx@oxxxx.ingest.sentry.io/xxxx
+
+# URL base da API (usada para montar o short URL retornado)
+API_URL=http://localhost:3000
+
+# Redis
+REDIS_URL=redis://localhost:6379  # Use "redis://redis:6379" via Docker Compose
+```
+
+> **Atenção:** ao subir com Docker Compose, `DB_HOST` e `REDIS_URL` são sobrescritos automaticamente pelo `environment` do serviço `api` no `docker-compose.yml`. Você não precisa alterá-los manualmente para uso via Docker.
+
+---
+
+## 🐳 Subindo com Docker Compose
 
 ```bash
-# unit tests
-$ npm run test
+# 1. Crie e configure o .env
+cp .env.example .env
+# edite o .env com JWT_SECRET e SENTRY_DSN
 
-# e2e tests
-$ npm run test:e2e
+# 2. Build e start dos containers
+docker compose up --build
 
-# test coverage
-$ npm run test:cov
+# 3. Acesse a API
+# http://localhost:3000
+
+# 4. Documentação Swagger
+# http://localhost:3000/docs
 ```
 
-## Deployment
+Os serviços iniciados são:
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+| Serviço    | Porta | Descrição                |
+| ---------- | ----- | ------------------------ |
+| `api`      | 3000  | Aplicação NestJS         |
+| `postgres` | 5432  | Banco de dados           |
+| `redis`    | 6379  | Cache e throttle storage |
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+---
+
+## 🛠️ Desenvolvimento Local (sem Docker)
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+# Instale as dependências
+npm install
+
+# Suba apenas os serviços de infraestrutura
+docker compose up postgres redis -d
+
+# Inicie a aplicação em modo watch
+npm run start:dev
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+---
 
-## Resources
+## 🗄️ Migrations
 
-Check out a few resources that may come in handy when working with NestJS:
+```bash
+# Gerar uma nova migration
+npm run migration:generate --name=NomeDaMigration
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+# Executar migrations pendentes
+npm run migration:run
 
-## Support
+# Reverter a última migration
+npm run migration:revert
+```
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+> Em ambiente de desenvolvimento, o `synchronize: true` do TypeORM está habilitado — as entidades são sincronizadas automaticamente. Em produção, `synchronize` é desativado e o uso de migrations é obrigatório.
 
-## Stay in touch
+---
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## 📖 Endpoints principais
 
-## License
+A documentação completa está disponível via Swagger em `/docs`.
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+### Autenticação
+
+| Método | Rota          | Descrição              | Auth |
+| ------ | ------------- | ---------------------- | ---- |
+| POST   | `/auth/login` | Login e retorno do JWT | ❌   |
+
+### Usuários
+
+| Método | Rota         | Descrição         | Auth |
+| ------ | ------------ | ----------------- | ---- |
+| POST   | `/users`     | Criar usuário     | ❌   |
+| GET    | `/users/me`  | Dados do usuário  | ✅   |
+| PATCH  | `/users/:id` | Atualizar usuário | ✅   |
+| DELETE | `/users/:id` | Deletar usuário   | ✅   |
+
+### URLs
+
+| Método | Rota                    | Descrição                      | Auth |
+| ------ | ----------------------- | ------------------------------ | ---- |
+| POST   | `/urls`                 | Criar URL encurtada            | ✅   |
+| GET    | `/urls`                 | Listar URLs do usuário         | ✅   |
+| GET    | `/urls/:id`             | Buscar URL por ID              | ✅   |
+| PATCH  | `/urls/:id`             | Atualizar URL                  | ✅   |
+| DELETE | `/urls/:id`             | Soft delete de URL             | ✅   |
+| GET    | `/urls/shortCode/:code` | Redirecionar para URL original | ❌   |
+
+---
+
+## 🧪 Testes
+
+```bash
+# Testes unitários
+npm run test
+
+# Testes com coverage
+npm run test:cov
+
+# Testes e2e
+npm run test:e2e
+```
+
+---
+
+## 🔒 Segurança
+
+- Todas as rotas são protegidas por JWT por padrão. Use o decorator `@Public()` para rotas públicas.
+- Rate limiting de **100 requisições por minuto** por IP, com armazenamento no Redis.
+- Senhas armazenadas com hash via **bcrypt**.
+- Validação de payload com `class-validator` (whitelist + forbidNonWhitelisted).
+
+---
+
+## 📊 Monitoramento (Sentry)
+
+O Sentry é inicializado via `instrument.ts` antes do bootstrap da aplicação. O `SentryGlobalFilter` captura todas as exceções não tratadas automaticamente.
+
+Para ativar o monitoramento, basta preencher o `SENTRY_DSN` no `.env` com o DSN do seu projeto em [sentry.io](https://sentry.io).
+
+---
+
+## 🌐 CORS
+
+Por padrão, o CORS está configurado para aceitar requisições de `http://localhost:4200` (Angular dev server). Altere a `origin` em `src/main.ts` conforme necessário.
